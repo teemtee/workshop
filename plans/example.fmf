@@ -1,0 +1,10 @@
+summary: Basic smoke test for did
+provision:
+    how: container
+    image: fedora:fresh
+prepare:
+    how: install
+    package: did
+execute:
+    how: tmt
+    script: did --test
