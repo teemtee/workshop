@@ -4,7 +4,6 @@
 
 **Prerequisites:**
 - Fedora/RHEL/CentOS: `sudo dnf install -y tmt+all`
-- Other Linux: 
 
 ---
 
@@ -46,14 +45,7 @@ Run the test:
 ./test.sh
 ```
 
-Save the result yourself:
-
-```bash
-./test.sh > result.log 2>&1
-cat result.log
-```
-
-**What just happened:** You wrote a test, manually installed the dependency, manually ran it, and manually saved the output. Four separate steps, all on you.
+**What just happened:** You wrote a test, manually installed the dependency, and manually ran it. Three separate steps, all on you.
 
 **Now imagine:**
 - You have 200 tests instead of 1
