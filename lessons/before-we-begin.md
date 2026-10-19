@@ -29,19 +29,43 @@ It's just a shell script. Exit code `0` means pass, non-zero means fail. This sc
 
 ## The problem
 
-To actually run this test, you need to:
+Running this test on your laptop is easy — just `./test.sh`. But what about CI?
 
-1. Make sure `curl` is installed on the machine
-2. Run the script yourself
-3. Check the output
+A GitHub Actions workflow for **one distro** is simple:
 
-That's fine for one test on one machine. But now imagine:
-- You have 200 tests instead of 1
-- You need to run them on Fedora, CentOS, *and* RHEL
-- A new team member joins and asks "how do I run the tests?"
-- You need results in a format CI can consume
+```yaml
+steps:
+  - run: apt install -y curl
+  - run: ./test.sh
+```
 
-Every team does it differently. Nothing is discoverable. Nothing is portable. This is the problem tmt solves.
+Now run the same test on Ubuntu, Fedora, **and** CentOS. Problem: each distro installs packages differently:
+
+| Distro | Install command |
+|--------|----------------|
+| Ubuntu | `apt install curl` |
+| Fedora | `dnf install curl` |
+| CentOS | `yum install curl` |
+
+So your CI file needs:
+
+```yaml
+- run: |
+    if command -v apt; then
+      apt install -y curl
+    elif command -v dnf; then
+      dnf install -y curl
+    fi
+```
+
+That's just **one** package. Imagine 10 packages across 5 distros — your CI file becomes a wall of if/else.
+
+With tmt, you write this once and it works on any distro:
+
+```yaml
+require:
+  - curl
+```
 
 ---
 
