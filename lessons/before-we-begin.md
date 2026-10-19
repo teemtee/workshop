@@ -7,19 +7,11 @@
 
 ---
 
-## Do it the manual way (no tmt)
+## You have a test
 
-Before learning tmt, let's see what testing looks like *without* it.
-
-```bash
-mkdir -p ~/test-demo/without-tmt
-cd ~/test-demo/without-tmt
-```
-
-Write a simple test — check if curl works:
+Say you have a simple test — it checks if curl works:
 
 ```bash
-cat <<'EOF' > test.sh
 #!/bin/bash
 curl --version
 if [ $? -eq 0 ]; then
@@ -29,25 +21,21 @@ else
     echo "FAIL: curl not found"
     exit 1
 fi
-EOF
-chmod +x test.sh
 ```
 
-Now run it — but first, *you* have to make sure curl is installed:
+It's just a shell script. Exit code `0` means pass, non-zero means fail. This script is the same whether you use tmt or not — tmt doesn't change how you write tests.
 
-```bash
-sudo dnf install -y curl    # you do this manually
-```
+---
 
-Run the test:
+## The problem
 
-```bash
-./test.sh
-```
+To actually run this test, you need to:
 
-**What just happened:** You wrote a test, manually installed the dependency, and manually ran it. Three separate steps, all on you.
+1. Make sure `curl` is installed on the machine
+2. Run the script yourself
+3. Check the output
 
-**Now imagine:**
+That's fine for one test on one machine. But now imagine:
 - You have 200 tests instead of 1
 - You need to run them on Fedora, CentOS, *and* RHEL
 - A new team member joins and asks "how do I run the tests?"
