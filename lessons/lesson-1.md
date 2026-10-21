@@ -4,31 +4,10 @@
 
 ---
 
-## Task 1 — Create a tmt playground
-
-Now let's build a test the tmt way.
+## Task 1 — Initialize the tmt workspace
 
 ```bash
 mkdir -p ~/test-demo/lesson-1 && cd ~/test-demo/lesson-1
-git init
-```
-
-**Why:** tmt works inside git repos. The metadata tree (fmf) is built from the repo root.
-
-**Verify:**
-```bash
-git status
-```
-
----
-
-## Task 2 — Initialize the fmf root
-
-In Task 1, you ran `git init`. But why? tmt uses a metadata format called **fmf** (Flexible Metadata Format), and fmf uses the git repo root to know where to start scanning for metadata files. Without a git repo, fmf doesn't know where to look.
-
-Now tell tmt this repo contains metadata:
-
-```bash
 tmt init
 ```
 
@@ -40,8 +19,6 @@ ls -la .fmf/
 
 You'll see a single file: `.fmf/version` containing just `1`. This tiny file is the flag that tells tmt "this directory tree contains metadata." Without it, tmt sees nothing.
 
-**So you need both:** `git init` gives fmf a root to scan from. `tmt init` creates the `.fmf/version` marker that says "there's metadata here."
-
 **Verify:**
 ```bash
 tmt tests ls
@@ -52,7 +29,7 @@ Both return empty — the root exists but you haven't defined anything yet.
 
 ---
 
-## Task 3 — Write the actual test script
+## Task 2 — Write the actual test script
 
 Create the file `tests/smoke/test.sh`:
 
@@ -89,7 +66,7 @@ echo $?    # should print 0
 
 ---
 
-## Task 4 — Create test metadata
+## Task 3 — Create test metadata
 
 tmt doesn't know your script exists yet. You need to describe it. Create `tests/smoke/main.fmf`:
 
@@ -124,7 +101,7 @@ This prints the full metadata. Confirm your summary, test command, and duration 
 
 ---
 
-## Task 5 — Try to run (and watch it fail)
+## Task 4 — Try to run (and watch it fail)
 
 ```bash
 tmt run -v
@@ -136,7 +113,7 @@ tmt run -v
 
 ---
 
-## Task 6 — Create a plan
+## Task 5 — Create a plan
 
 ```bash
 mkdir -p plans
@@ -180,7 +157,7 @@ Confirm discover/provision/execute details appear.
 
 ---
 
-## Task 7 — Lint before you run
+## Task 6 — Lint before you run
 
 ```bash
 tmt lint
@@ -190,7 +167,7 @@ This validates all your metadata. Fix any warnings before proceeding. Green chec
 
 ---
 
-## Task 8 — Dry run
+## Task 7 — Dry run
 
 ```bash
 tmt run --dry -v
@@ -202,7 +179,7 @@ tmt run --dry -v
 
 ---
 
-## Task 9 — The real run
+## Task 8 — The real run
 
 ```bash
 tmt run -vv
@@ -221,7 +198,7 @@ Watch the output. tmt will:
 
 ---
 
-## Task 10 — Make a test fail (on purpose)
+## Task 9 — Make a test fail (on purpose)
 
 Edit `tests/smoke/test.sh` — add a line that will fail:
 
@@ -248,7 +225,7 @@ This shows the detailed output of the failed test — the exact logs from inside
 
 ---
 
-## Task 11 — Inspect the run directory
+## Task 10 — Inspect the run directory
 
 ```bash
 ls /var/tmp/tmt/
