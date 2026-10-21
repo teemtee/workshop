@@ -76,7 +76,6 @@ Let's do the **same test** with tmt:
 ```bash
 mkdir -p ~/test-demo/with-tmt
 cd ~/test-demo/with-tmt
-git init
 tmt init
 ```
 
