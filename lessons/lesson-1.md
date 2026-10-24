@@ -17,27 +17,20 @@ tmt init
 ls -la .fmf/
 ```
 
-You'll see a single file: `.fmf/version` containing just `1`. This tiny file is the flag that tells tmt "this directory tree contains metadata." Without it, tmt sees nothing.
+This tiny file is the flag that tells tmt "this directory tree contains metadata." Without it, tmt sees nothing.
 
 **Verify:**
 ```bash
 tmt tests ls
-tmt plans ls
 ```
 
-Both return empty — the root exists but you haven't defined anything yet.
+Returns empty — the root exists but you haven't defined anything yet.
 
 ---
 
 ## Task 2 — Write the actual test script
 
-Create the file `tests/smoke/test.sh`:
-
-```bash
-mkdir -p tests/smoke
-```
-
-Now write this script yourself (use your editor):
+Create `test.sh` in your lesson-1 directory:
 
 ```bash
 #!/bin/bash
@@ -53,14 +46,14 @@ echo "All checks passed."
 Make it executable:
 
 ```bash
-chmod +x tests/smoke/test.sh
+chmod +x test.sh
 ```
 
 **Why:** This is just a shell script. tmt doesn't care *what* your test does — it only cares about the **exit code**. `0` = pass, anything else = fail. This is the fundamental contract.
 
 **Verify:**
 ```bash
-./tests/smoke/test.sh
+./test.sh
 echo $?    # should print 0
 ```
 
@@ -68,7 +61,7 @@ echo $?    # should print 0
 
 ## Task 3 — Create test metadata
 
-tmt doesn't know your script exists yet. You need to describe it. Create `tests/smoke/main.fmf`:
+tmt doesn't know your script exists yet. You need to describe it. Create `main.fmf` in the same directory:
 
 ```yaml
 summary: Basic smoke test for OS essentials
@@ -84,14 +77,12 @@ duration: 2m
 | `test` | The command tmt will execute (relative to this file's directory) |
 | `duration` | Max time before tmt kills the test as a timeout |
 
-**Why `main.fmf`?** Any file named `*.fmf` contributes to the metadata tree. `main.fmf` is the convention for "this directory's metadata" — like `index.html` for a folder.
-
 **Verify:**
 ```bash
 tmt tests ls
 ```
 
-You should see `/tests/smoke`. tmt found your test.
+You should see your test listed. tmt found it.
 
 ```bash
 tmt tests show
@@ -101,106 +92,19 @@ This prints the full metadata. Confirm your summary, test command, and duration 
 
 ---
 
-## Task 4 — Try to run (and watch it fail)
+## Task 4 — The real run
 
 ```bash
-tmt run -v
+tmt run --all
 ```
-
-**What happens:** tmt complains — it found a test but no **plan**. Tests define *what* to run. Plans define *how* to run it. You need both.
-
-**Lesson:** A test alone is not enough. The plan is the orchestrator.
-
----
-
-## Task 5 — Create a plan
-
-```bash
-mkdir -p plans
-```
-
-Create `plans/basic.fmf`:
-
-```yaml
-summary: Run smoke tests in a container
-discover:
-    how: fmf
-provision:
-    how: container
-    image: fedora:latest
-execute:
-    how: tmt
-```
-
-**What each block does:**
-
-| Block | Pipeline step | What it answers |
-|-------|---------------|-----------------|
-| `discover` | Step 1 | "Where do I find tests?" — `fmf` means scan the repo's `.fmf` tree |
-| `provision` | Step 2 | "Where do I run them?" — a fresh Fedora container |
-| `execute` | Step 3 | "How do I run them?" — `tmt` executor handles script execution and result collection |
-
-**Why a separate `plans/` directory?** Convention. Plans and tests live apart because plans describe infrastructure, tests describe behavior. Different concerns, different owners.
-
-**Verify:**
-```bash
-tmt plans ls
-```
-
-You should see `/plans/basic`.
-
-```bash
-tmt plans show
-```
-
-Confirm discover/provision/execute details appear.
-
----
-
-## Task 6 — Lint before you run
-
-```bash
-tmt lint
-```
-
-This validates all your metadata. Fix any warnings before proceeding. Green checks = you're good.
-
----
-
-## Task 7 — Dry run
-
-```bash
-tmt run --dry -v
-```
-
-**Why:** This walks through the entire pipeline *without actually provisioning or executing anything*. You'll see tmt discover your test, describe what container it would create, and what it would execute. No resources consumed.
-
-**Verify:** Read the output. You should see your test `/tests/smoke` discovered under plan `/plans/basic`.
-
----
-
-## Task 8 — The real run
-
-```bash
-tmt run -vv
-```
-
-Watch the output. tmt will:
-
-1. **Discover** — find `/tests/smoke`
-2. **Provision** — pull and start `fedora:latest` container
-3. **Prepare** — install any dependencies (none in our case)
-4. **Execute** — run `./test.sh` inside the container
-5. **Report** — show pass/fail
-6. **Finish** — tear down the container
 
 **Verify:** You should see a **PASS** result.
 
 ---
 
-## Task 9 — Make a test fail (on purpose)
+## Task 5 — Make a test fail (on purpose)
 
-Edit `tests/smoke/test.sh` — add a line that will fail:
+Edit `test.sh` — add a line that will fail:
 
 ```bash
 # add this at the end of test.sh
@@ -210,7 +114,7 @@ test -f /nonexistent/file && echo "PASS" || exit 1
 Run again:
 
 ```bash
-tmt run -vv
+tmt run --all -vv
 ```
 
 You should see a **FAIL**. Now inspect:
@@ -225,13 +129,25 @@ This shows the detailed output of the failed test — the exact logs from inside
 
 ---
 
-## Task 10 — Inspect the run directory
+## Task 6 — Lint your metadata
 
 ```bash
-ls /var/tmp/tmt/
+tmt lint
 ```
 
-tmt stores all run data here. Each run gets its own directory with logs, results, and guest info. Poke around — understanding this structure helps when debugging real failures later.
+This validates all your metadata. Green checks = you're good. Run this before pushing changes to catch issues early.
+
+---
+
+## Task 7 — Dry run
+
+```bash
+tmt run --all --dry -v
+```
+
+**Why:** This walks through the entire pipeline *without actually provisioning or executing anything*. You'll see tmt discover your test, describe what it would execute. No resources consumed. Useful when you want to check your setup without waiting for a container.
+
+**Verify:** Read the output. You should see your test discovered.
 
 ---
 
@@ -241,21 +157,16 @@ tmt stores all run data here. Each run gets its own directory with logs, results
 ~/test-demo/lesson-1/
 ├── .fmf/
 │   └── version            <- "this is an fmf tree"
-├── plans/
-│   └── basic.fmf          <- HOW to run (discover + provision + execute)
-└── tests/
-    └── smoke/
-        ├── main.fmf        <- WHAT to run (metadata pointing to the script)
-        └── test.sh          <- the actual test logic
+├── main.fmf               <- WHAT to run (metadata pointing to the script)
+└── test.sh                <- the actual test logic
 ```
 
-**3 files you created, each with a distinct job:**
+**2 files you created, each with a distinct job:**
 
 | File | Role | Key that identifies it |
 |------|------|-----------------------|
 | `test.sh` | The actual test logic | (just a script, exit 0/1) |
 | `main.fmf` | Test metadata | `test:` key |
-| `basic.fmf` | Plan / orchestration | `execute:` key |
 
 ---
 
@@ -263,7 +174,6 @@ tmt stores all run data here. Each run gets its own directory with logs, results
 
 - [ ] Felt the pain of testing manually (Before We Begin)
 - [ ] Can explain what `.fmf/version` does
-- [ ] Can explain the difference between a test and a plan
 - [ ] Know that exit code 0 = pass, non-zero = fail
 - [ ] Created and ran a test in a container
 - [ ] Used `--dry`, `--last`, `-vvv`, and `lint`
@@ -271,4 +181,4 @@ tmt stores all run data here. Each run gets its own directory with logs, results
 
 ---
 
-**Next:** Lesson 2 — adding dependencies with `require`, using `prepare` to install packages, and running tests across different OS images.
+**Next:** Lesson 2 — creating plans to control where and how tests run, adding dependencies with `require`, and running tests across different OS images.
