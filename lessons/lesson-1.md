@@ -100,54 +100,7 @@ tmt run --all
 
 **Verify:** You should see a **PASS** result.
 
----
-
-## Task 5 — Make a test fail (on purpose)
-
-Edit `test.sh` — add a line that will fail:
-
-```bash
-# add this at the end of test.sh
-test -f /nonexistent/file && echo "PASS" || exit 1
-```
-
-Run again:
-
-```bash
-tmt run --all -vv
-```
-
-You should see a **FAIL**. Now inspect:
-
-```bash
-tmt run --last report -vvv
-```
-
-This shows the detailed output of the failed test — the exact logs from inside the container.
-
-**Lesson:** `--last` re-reads the most recent run's data without re-executing. `-vvv` gives you full output.
-
----
-
-## Task 6 — Lint your metadata
-
-```bash
-tmt lint
-```
-
-This validates all your metadata. Green checks = you're good. Run this before pushing changes to catch issues early.
-
----
-
-## Task 7 — Dry run
-
-```bash
-tmt run --all --dry -v
-```
-
-**Why:** This walks through the entire pipeline *without actually provisioning or executing anything*. You'll see tmt discover your test, describe what it would execute. No resources consumed. Useful when you want to check your setup without waiting for a container.
-
-**Verify:** Read the output. You should see your test discovered.
+By default, tmt runs the test directly on your machine. In Lesson 2, you'll learn how to use plans to run tests inside containers instead.
 
 ---
 
@@ -170,15 +123,4 @@ tmt run --all --dry -v
 
 ---
 
-## Lesson 1 checklist
-
-- [ ] Felt the pain of testing manually (Before We Begin)
-- [ ] Can explain what `.fmf/version` does
-- [ ] Know that exit code 0 = pass, non-zero = fail
-- [ ] Created and ran a test in a container
-- [ ] Used `--dry`, `--last`, `-vvv`, and `lint`
-- [ ] Know where tmt stores run data
-
----
-
-**Next:** Lesson 2 — creating plans to control where and how tests run, adding dependencies with `require`, and running tests across different OS images.
+**Next:** Lesson 2 creating plans to control where tests run.
