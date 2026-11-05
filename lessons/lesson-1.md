@@ -1,13 +1,12 @@
-# Lesson 1: From Empty Directory to a Working Test Run
+# Lesson 1: Your First tmt Test
 
 **Goal:** By the end, you'll have created every file needed for `tmt run` to work, and you'll know *why* each one exists.
 
----
+If you look at the [git repository of this lesson](https://github.com/teemtee/workshop/tree/main/lessons), you'll find the minimal definition of a tmt test. Let's start from scratch in a clean folder and break down what you see step by step.
 
 ## Task 1 — Initialize the tmt workspace
 
 ```bash
-mkdir -p ~/test-demo/lesson-1 && cd ~/test-demo/lesson-1
 tmt init
 ```
 
@@ -26,7 +25,6 @@ tmt tests ls
 
 Returns empty — the root exists but you haven't defined anything yet.
 
----
 
 ## Task 2 — Write the actual test script
 
@@ -43,13 +41,7 @@ bash --version > /dev/null && echo "PASS: bash works" || exit 1
 echo "All checks passed."
 ```
 
-Make it executable:
-
-```bash
-chmod +x test.sh
-```
-
-**Why:** This is just a shell script. tmt doesn't care *what* your test does — it only cares about the **exit code**. `0` = pass, anything else = fail. This is the fundamental contract.
+This is just a shell script. tmt doesn't care *what* your test does — it only cares about the **exit code**. `0` is pass, `1` is fail (the test ran, but a check failed), anything else is error (something went wrong outside of the test).
 
 **Verify:**
 ```bash
@@ -57,7 +49,6 @@ chmod +x test.sh
 echo $?    # should print 0
 ```
 
----
 
 ## Task 3 — Create test metadata
 
@@ -77,6 +68,10 @@ duration: 2m
 | `test` | The command tmt will execute (relative to this file's directory) |
 | `duration` | Max time before tmt kills the test as a timeout |
 
+:::note
+Make sure your test script is executable (`chmod +x test.sh`), otherwise tmt won't be able to run it.
+:::
+
 **Verify:**
 ```bash
 tmt tests ls
@@ -90,7 +85,6 @@ tmt tests show
 
 This prints the full metadata. Confirm your summary, test command, and duration appear.
 
----
 
 ## Task 4 — The real run
 
@@ -102,7 +96,6 @@ tmt run --all
 
 By default, tmt runs the test directly on your machine. In Lesson 2, you'll learn how to use plans to run tests inside containers instead.
 
----
 
 ## What you built
 
@@ -121,6 +114,3 @@ By default, tmt runs the test directly on your machine. In Lesson 2, you'll lear
 | `test.sh` | The actual test logic | (just a script, exit 0/1) |
 | `main.fmf` | Test metadata | `test:` key |
 
----
-
-**Next:** Lesson 2 creating plans to control where tests run.

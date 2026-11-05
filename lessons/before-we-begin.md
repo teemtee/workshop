@@ -110,5 +110,3 @@ That's it. tmt found the test, installed curl, ran the test, and reported the re
 
 **Don't worry if this doesn't fully make sense yet — Lesson 1 walks through every step.**
 
----
-
