@@ -66,7 +66,7 @@ So your CI file needs:
     fi
 ```
 
-That's just **one** package. Imagine 10 packages across 5 distros — your CI file becomes a wall of if/else.
+This can quickly get out of hand.
 
 ---
 
