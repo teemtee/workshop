@@ -9,6 +9,11 @@ project:
   github: https://github.com/teemtee/workshop
   toc:
     - file: index.md
+    - file: lessons/before-we-begin.md
+    - title: Lessons
+      children:
+        - file: lessons/lesson-1.md
+        - file: lessons/lesson-2.md
     
 site:
   template: book-theme
