@@ -1,31 +1,11 @@
 # Lesson 2: Plans
 
-**Goal:** Learn how to create plans to control where your tests run.
+**Goal:** Learn how to create plans
 
-**Prerequisites:** Complete Lesson 1.
 
----
+## Task 1 — Create a plan
 
-## Task 1 — Set up from Lesson 1
-
-```bash
-cp -r ~/test-demo/lesson-1 ~/test-demo/lesson-2
-cd ~/test-demo/lesson-2
-```
-
-Make sure everything still works:
-
-```bash
-tmt run --all
-```
-
-You should see a **PASS**.
-
----
-
-## Task 2 — Create a plan
-
-In Lesson 1, `tmt run --all` ran your test directly on your machine. But what if you want to run it in a container? That's what a plan is for.
+A plan defines how your tests are discovered, where they run, and what happens before and after. Let's create one.
 
 ```bash
 mkdir -p plans
@@ -44,50 +24,22 @@ execute:
     how: tmt
 ```
 
-| Block | What it answers |
-|-------|-----------------|
-| `discover` | "Where do I find tests?" — scan the fmf metadata tree |
-| `provision` | "Where do I run them?" — a fresh Fedora container |
-| `execute` | "How do I run them?" — tmt's built-in executor |
+A plan defines what happens at each step of the pipeline:
 
-Now run with the plan (no `--all` needed):
+- Where to `discover` the tests from, e.g. the test-like objects in the current fmf tree
+- How to `provision` the guests where the tests are run, e.g. in a container
+- What to do to `prepare` the guest you just provisioned, e.g. install a particular package
+- How to `execute` the tests — don't worry about this one, there is practically only one way to do so
+- What to `finish` doing before terminating the provisioned guest, e.g. make sure you stop an external server
+- Where to `report` the test results, e.g. as a local html file
 
-```bash
-tmt run
-```
-
-Same test, but now it runs inside a Fedora container instead of on your machine.
-
----
-
-## Task 3 — Run on a different OS
-
-Create a second plan. Create `plans/centos.fmf`:
-
-```yaml
-summary: Run tests on CentOS Stream 9
-discover:
-    how: fmf
-provision:
-    how: container
-    image: quay.io/centos/centos:stream9
-execute:
-    how: tmt
-```
+Now run with the plan:
 
 ```bash
 tmt run
 ```
 
-tmt runs your test under **both** plans — once on Fedora, once on CentOS. Same test, different environments, zero changes to the test itself.
-
-To run only the CentOS plan:
-
-```bash
-tmt run plan --name /plans/centos
-```
-
----
+Same test, but now the plan explicitly controls the environment — a Fedora container in this case.
 
 ## What you built
 
@@ -98,15 +50,5 @@ tmt run plan --name /plans/centos
 ├── main.fmf
 ├── test.sh
 └── plans/
-    ├── basic.fmf              <- run on Fedora
-    └── centos.fmf             <- run on CentOS Stream 9
+    └── basic.fmf              <- run on Fedora
 ```
-
-| Concept | What it does |
-|---------|--------------|
-| plan | Control how tests are discovered, where they run, and how they execute |
-| `plan --name` | Run only a specific plan |
-
----
-
-**Next:** Lesson 3 — declaring dependencies with `require` and running tests that need packages.
