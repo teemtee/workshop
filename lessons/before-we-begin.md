@@ -5,7 +5,6 @@
 **Prerequisites:**
 - Fedora/RHEL/CentOS: `sudo dnf install -y tmt+all` — installs tmt with all optional plugins (container provisioning, HTML reports, etc.)
 
----
 
 ## You have a test
 
@@ -23,9 +22,8 @@ else
 fi
 ```
 
-It's just a shell script. Exit code `0` means pass, non-zero means fail. This script is the same whether you use tmt or not — tmt doesn't change how you write tests.
+It's just a shell script. Exit code `0` is pass, `1` is fail, anything else is error. This script is the same whether you use tmt or not — tmt doesn't change how you write tests.
 
----
 
 ## The problem
 
@@ -68,7 +66,6 @@ So your CI file needs:
 
 This can quickly get out of hand.
 
----
 
 ## Now do it with tmt
 
