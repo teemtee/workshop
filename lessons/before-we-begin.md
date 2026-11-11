@@ -100,7 +100,7 @@ require:
 Run everything:
 
 ```bash
-tmt run --all
+tmt run
 ```
 
 That's it. tmt found the test, installed curl, ran the test, and reported the result.
