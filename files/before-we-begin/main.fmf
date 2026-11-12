@@ -1,4 +1,0 @@
-summary: Check that curl works
-test: ./test.sh
-require:
-  - curl

@@ -25,21 +25,22 @@ Create `test.sh`:
 
 ```bash
 #!/bin/bash
-echo "Checking if /etc/os-release exists..."
-test -f /etc/os-release && echo "PASS: file exists" || exit 1
-
-echo "Checking if bash is available..."
-bash --version > /dev/null && echo "PASS: bash works" || exit 1
-
-echo "All checks passed."
+curl --version
+if [ $? -eq 0 ]; then
+    echo "PASS: curl works"
+    exit 0
+else
+    echo "FAIL: curl not found"
+    exit 1
+fi
 ```
 
 This is just a shell script. tmt doesn't care *what* your test does — it only cares about the **exit code**. `0` is pass, `1` is fail (the test ran, but a check failed), anything else is error.
 
 **Verify:**
 ```bash
-./test.sh
-echo $?    # should print 0
+./test.sh   # should print "PASS: curl works"
+echo $?    # should print "0"
 ```
 :::note
 Make sure your test script is executable (`chmod +x test.sh`), otherwise tmt won't be able to run it.
