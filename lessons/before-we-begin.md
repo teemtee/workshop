@@ -39,30 +39,35 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - run: apt install -y curl
+      - uses: actions/checkout@v4
+      - run: sudo apt-get install -y curl
       - run: ./test.sh
 ```
 
 This file lives in your repo as `.github/workflows/test.yml`. Every time you push code, GitHub runs the `test` job — it installs curl on an Ubuntu machine and runs your test.
 
-Now run the same test on Ubuntu, Fedora, **and** CentOS. Problem: each distro installs packages differently:
+Now run the same test on Ubuntu, Fedora, **and** CentOS Stream. Problem: each distro installs packages differently:
 
 | Distro | Install command |
 |--------|----------------|
-| Ubuntu | `apt install curl` |
+| Ubuntu | `apt-get install curl` |
 | Fedora | `dnf install curl` |
-| CentOS | `yum install curl` |
+| CentOS Stream | `dnf install curl` |
+
+GitHub runners only offer Ubuntu — to test on Fedora or CentOS Stream, you'd also need to configure containers and a build matrix in your workflow.
 
 So your CI file needs:
 
 ```yaml
 - run: |
-    if command -v apt; then
-      apt install -y curl
-    elif command -v dnf; then
+    if command -v apt-get > /dev/null; then
+      apt-get update && apt-get install -y curl
+    elif command -v dnf > /dev/null; then
       dnf install -y curl
     fi
 ```
+
+And even this isn't enough — CentOS Stream ships `curl-minimal` which conflicts with `curl`, so `dnf install curl` fails unless you add a special flag `dnf install -y --allowerasing curl`. You'd only find out when CI breaks.
 
 This can quickly get out of hand.
 
