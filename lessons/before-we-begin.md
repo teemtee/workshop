@@ -3,7 +3,8 @@
 **Goal:** See what testing looks like with and without tmt, so you understand the problem it solves before building anything yourself.
 
 **Prerequisites:**
-- Fedora/RHEL/CentOS: `sudo dnf install -y tmt+all` — installs tmt with all optional plugins (container provisioning, HTML reports, etc.)
+- Fedora: `sudo dnf install -y tmt+all`
+- Other distros: see [Install](https://tmt.readthedocs.io/en/stable/overview.html#install)
 
 
 ## You have a test
@@ -95,7 +96,7 @@ tmt init
 ```
 
 ```yaml
-# main.fmf
+# test.fmf
 summary: Check that curl works
 test: ./test.sh
 require:

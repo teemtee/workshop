@@ -58,13 +58,10 @@ test: ./test.sh
 
 ## Task 4 — The real run
 
-```bash
-tmt run
-```
-
 **Verify:** You should see something like **1 test passed** as below:
 
 ```console
+$ tmt run
 /var/tmp/tmt/run-025
 
 /default/plan
@@ -148,8 +145,8 @@ total: 1 test passed
 ## What you built
 
 ```
-├── .fmf/
-│   └── version            <- "this is an fmf tree"
+├── .fmf/                  <- this is the fmf tree root
+│   └── version
 ├── test.fmf               <- WHAT to run (metadata pointing to the script)
 └── test.sh                <- the actual test logic
 ```
