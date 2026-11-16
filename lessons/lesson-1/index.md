@@ -43,7 +43,7 @@ This is just a shell script. tmt doesn't care *what* your test does — it only 
 
 **Verify:**
 ```bash
-./test.sh # should print "PASS: curl works"
+./test.sh  # should print "PASS: curl works"
 echo $?    # should print 0
 ```
 ## Task 3 — Create test metadata
