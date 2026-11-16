@@ -9,16 +9,16 @@
 
 ## You have a test
 
-Say you have a simple test — it checks if curl works:
+Say you have a simple test — it checks if `tree` is installed:
 
 ```bash
 #!/bin/bash
-curl --version
+tree --version
 if [ $? -eq 0 ]; then
-    echo "PASS: curl works"
+    echo "PASS: tree works"
     exit 0
 else
-    echo "FAIL: curl not found"
+    echo "FAIL: tree not found"
     exit 1
 fi
 ```
@@ -33,7 +33,7 @@ Running this test on your laptop is easy — just `./test.sh`. But what about CI
 A GitHub Actions workflow for **one distro** is simple:
 
 ```yaml
-name: Test curl
+name: Test tree
 on: push
 
 jobs:
@@ -41,50 +41,63 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y curl
+      - run: sudo apt-get install -y tree
       - run: ./test.sh
 ```
 
-This file lives in your repo as `.github/workflows/test.yml`. Every time you push code, GitHub runs the `test` job — it installs curl on an Ubuntu machine and runs your test.
+This file lives in your repo as `.github/workflows/test.yml`. Every time you push code, GitHub runs the `test` job — it installs tree on an Ubuntu machine and runs your test.
 
 Now run the same test on Ubuntu, Fedora, **and** CentOS Stream. Problem: each distro installs packages differently:
 
 | Distro | Install command |
 |--------|----------------|
-| Ubuntu | `apt-get install curl` |
-| Fedora | `dnf install curl` |
-| CentOS Stream | `dnf install curl` |
+| Ubuntu | `apt-get install tree` |
+| Fedora | `dnf install tree` |
+| CentOS Stream | `dnf install tree` |
 
-GitHub runners only offer Ubuntu — to test on Fedora or CentOS Stream, you'd also need to configure containers and a build matrix in your workflow.
-
-So your CI file needs:
+GitHub runners only offer Ubuntu — to test on Fedora or CentOS Stream, you'd also need to configure containers and a build matrix in your workflow:
 
 ```yaml
-- run: |
-    if command -v apt-get > /dev/null; then
-      apt-get update && apt-get install -y curl
-    elif command -v dnf > /dev/null; then
-      dnf install -y curl
-    fi
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+          - ubuntu:latest
+          - fedora:latest
+          - quay.io/centos/centos:stream9
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies (Ubuntu)
+        run: apt-get update && apt-get install -y tree
+        if: matrix.container == 'ubuntu:latest'
+      - name: Install dependencies (Fedora)
+        run: dnf install -y tree
+        if: matrix.container == 'fedora:latest'
+      - name: Install dependencies (CentOS Stream)
+        run: dnf install -y tree
+        if: matrix.container == 'quay.io/centos/centos:stream9'
+      - run: ./test.sh
 ```
 
-And even this isn't enough — CentOS Stream ships `curl-minimal` which conflicts with `curl`, so `dnf install curl` fails unless you add a special flag `dnf install -y --allowerasing curl`. You'd only find out when CI breaks.
-
-This can quickly get out of hand.
+Every distro needs its own install step. That's one package — this can quickly get out of hand.
 
 
 ## Now do it with tmt
 
-Take the same curl test script:
+Take the same test script:
 
 ```bash
 #!/bin/bash
-curl --version
+tree --version
 if [ $? -eq 0 ]; then
-    echo "PASS: curl works"
+    echo "PASS: tree works"
     exit 0
 else
-    echo "FAIL: curl not found"
+    echo "FAIL: tree not found"
     exit 1
 fi
 ```
@@ -97,10 +110,9 @@ tmt init
 
 ```yaml
 # test.fmf
-summary: Check that curl works
 test: ./test.sh
 require:
-  - curl
+  - tree
 ```
 
 Run everything:
@@ -109,7 +121,6 @@ Run everything:
 tmt run
 ```
 
-That's it. tmt found the test, installed curl, ran the test, and reported the result.
+That's it. tmt found the test, installed tree, ran the test, and reported the result.
 
 **Don't worry if this doesn't fully make sense yet — Lesson 1 walks through every step.**
-
