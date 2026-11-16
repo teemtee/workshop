@@ -47,15 +47,14 @@ jobs:
 
 This file lives in your repo as `.github/workflows/test.yml`. Every time you push code, GitHub runs the `test` job — it installs tree on an Ubuntu machine and runs your test.
 
-Now run the same test on Ubuntu, Fedora, **and** CentOS Stream. Problem: each distro installs packages differently:
+Now run the same test on Ubuntu **and** Fedora. Problem: each distro installs packages differently:
 
 | Distro | Install command |
 |--------|----------------|
 | Ubuntu | `apt-get install tree` |
 | Fedora | `dnf install tree` |
-| CentOS Stream | `dnf install tree` |
 
-GitHub runners only offer Ubuntu — to test on Fedora or CentOS Stream, you'd also need to configure containers and a build matrix in your workflow:
+GitHub runners only offer Ubuntu — to test on Fedora, you'd also need to configure containers and a build matrix in your workflow:
 
 ```yaml
 jobs:
@@ -68,7 +67,6 @@ jobs:
         container:
           - ubuntu:latest
           - fedora:latest
-          - quay.io/centos/centos:stream9
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies (Ubuntu)
@@ -77,9 +75,6 @@ jobs:
       - name: Install dependencies (Fedora)
         run: dnf install -y tree
         if: matrix.container == 'fedora:latest'
-      - name: Install dependencies (CentOS Stream)
-        run: dnf install -y tree
-        if: matrix.container == 'quay.io/centos/centos:stream9'
       - run: ./test.sh
 ```
 
