@@ -9,16 +9,16 @@
 
 ## You have a test
 
-Say you have a simple test — it checks if curl works:
+Say you have a simple test — it checks if tree works:
 
 ```bash
 #!/bin/bash
-curl --version
+tree --version
 if [ $? -eq 0 ]; then
-    echo "PASS: curl works"
+    echo "PASS: tree works"
     exit 0
 else
-    echo "FAIL: curl not found"
+    echo "FAIL: tree not found"
     exit 1
 fi
 ```
@@ -28,88 +28,38 @@ It's just a shell script. Exit code `0` is pass, `1` is fail, anything else is e
 
 ## The problem
 
-Running this test on your laptop is easy — just `./test.sh`. But what about CI?
+You've written the test. Before you open a pull request, you want to know it actually passes — in a clean environment, the way CI will run it, not just on your own cluttered laptop where curl happens to be installed already.
 
-A GitHub Actions workflow for **one distro** is simple:
+Without tmt you have two options, and neither is great:
 
-```yaml
-name: Test curl
-on: push
+- **Push and wait.** Open the pull request and let CI tell you. That means waiting in a queue, possibly for a long time, and when it comes back red you're debugging a remote machine you can't see.
+- **Roll your own.** Spin up a container by hand, install the dependencies, mount your code, run the script, clean up afterwards. Now you maintain a second recipe that slowly drifts away from what CI actually does — so "passes locally" stops meaning "passes in CI".
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: sudo apt-get install -y curl
-      - run: ./test.sh
-```
-
-This file lives in your repo as `.github/workflows/test.yml`. Every time you push code, GitHub runs the `test` job — it installs curl on an Ubuntu machine and runs your test.
-
-Now run the same test on Ubuntu, Fedora, **and** CentOS Stream. Problem: each distro installs packages differently:
-
-| Distro | Install command |
-|--------|----------------|
-| Ubuntu | `apt-get install curl` |
-| Fedora | `dnf install curl` |
-| CentOS Stream | `dnf install curl` |
-
-GitHub runners only offer Ubuntu — to test on Fedora or CentOS Stream, you'd also need to configure containers and a build matrix in your workflow.
-
-So your CI file needs:
-
-```yaml
-- run: |
-    if command -v apt-get > /dev/null; then
-      apt-get update && apt-get install -y curl
-    elif command -v dnf > /dev/null; then
-      dnf install -y curl
-    fi
-```
-
-And even this isn't enough — CentOS Stream ships `curl-minimal` which conflicts with `curl`, so `dnf install curl` fails unless you add a special flag `dnf install -y --allowerasing curl`. You'd only find out when CI breaks.
-
-This can quickly get out of hand.
+Either way, the feedback loop is slow or unreliable.
 
 
 ## Now do it with tmt
 
-Take the same curl test script:
-
-```bash
-#!/bin/bash
-curl --version
-if [ $? -eq 0 ]; then
-    echo "PASS: curl works"
-    exit 0
-else
-    echo "FAIL: curl not found"
-    exit 1
-fi
-```
-
-Initialize tmt and add a metadata file that declares the dependency:
-
-```bash
-tmt init
-```
+Take the same test script, and add a small metadata file next to it that declares what the test needs:
 
 ```yaml
 # test.fmf
-summary: Check that curl works
+summary: Check that tree works
 test: ./test.sh
 require:
-  - curl
+  - tree
 ```
 
-Run everything:
+Now check it in a clean container, right from your laptop:
 
 ```bash
-tmt run
+tmt run --all provision --how container
 ```
 
-That's it. tmt found the test, installed curl, ran the test, and reported the result.
+tmt pulls a fresh container, installs tree inside it, runs your test, reports the result, and throws the container away. Your laptop stays untouched, and you get the answer in seconds — no pull request, no queue.
+
+The important part is **fidelity**: this is the same `test.fmf` and the same `tmt run` that CI uses. What passes here passes there. And the environment is just one flag — swap `--how container` for `--how virtual` to run in a full virtual machine, or point it at a remote guest, without touching the test.
+
+tmt doesn't replace your CI — it runs *inside* it. The value is that you can run exactly what CI runs, locally, before you ever push.
 
 **Don't worry if this doesn't fully make sense yet — Lesson 1 walks through every step.**
-
